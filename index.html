@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Todo App With React Hooks</h1>
+    <form id="todo-form">
+      <input type="text" id="todo-input" placeholder="Enter todo" />
+      <button type="submit">Add</button>
+    </form>
+
+    <ul id="todo-list"></ul>
+  </div>
+
+  <script>
+    const apiUrl = "http://localhost:5000/todos";
+
+    async function fetchTodos() {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+      renderTodos(data);
+    }
+
+    function renderTodos(todos) {
+      const list = document.getElementById("todo-list");
+      list.innerHTML = "";
+      todos.forEach(todo => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span onclick="toggleTodo(${todo.id})" class="${todo.completed ? 'completed' : ''}">
+            ${todo.text}
+          </span>
+          <button onclick="deleteTodo(${todo.id})">x</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function addTodo(text) {
+      await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      fetchTodos();
+    }
+
+    async function deleteTodo(id) {
+      await fetch(\`\${apiUrl}/\${id}\`, { method: "DELETE" });
+      fetchTodos();
+    }
+
+    async function toggleTodo(id) {
+      await fetch(\`\${apiUrl}/\${id}/toggle\`, { method: "PUT" });
+      fetchTodos();
+    }
+
+    document.getElementById("todo-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const input = document.getElementById("todo-input");
+      if (input.value.trim() !== "") {
+        addTodo(input.value);
+        input.value = "";
+      }
+    });
+
+    fetchTodos();
+  </script>
+</body>
+</html>
